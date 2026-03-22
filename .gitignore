@@ -1,0 +1,6 @@
+#yt_mp3/.gitignore
+*
+!.gitignore
+!src/
+!src/**
+!main.bat
