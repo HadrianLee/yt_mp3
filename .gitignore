@@ -4,6 +4,7 @@
 !.gitignore
 !README.md
 !main.bat
+!uninstall.bat
 
 # Allow directories
 !src/

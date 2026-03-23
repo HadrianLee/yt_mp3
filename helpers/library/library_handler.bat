@@ -10,6 +10,7 @@ if "%CONDA_DEFAULT_ENV%"=="" (
 set "debug=0"
 set "force_library_missing=0"
 set "library_exists=0"
+set "library_installed_now=0"
 
 :: 2. Arguments (Rephrased 'library' to 'exe' for clarity)
 set "exe=%~1"
@@ -45,7 +46,7 @@ if "!force_library_missing!"=="1" (
 :: Exit if found (and not forced)
 if "!library_exists!"=="1" (
     echo [info] !name! already exists in: %CONDA_DEFAULT_ENV%
-    endlocal & exit /b 0
+    endlocal & set "library_installed_now=0" & exit /b 0
 )
 
 echo [info] !name! is missing in environment: %CONDA_DEFAULT_ENV%
@@ -70,6 +71,7 @@ if /i "!choice!"=="y" (
 if "!debug!"=="1" (
     echo [debug] Simulating a successful !name! install via AXIOM.
     set "library_exists=1"
+    set "library_installed_now=1"
     goto AXIOM_LIBRARY_EXISTS
 )
 
@@ -86,13 +88,14 @@ if !errorlevel! neq 0 (
 where !exe! >nul 2>nul
 if !errorlevel! equ 0 (
     set "library_exists=1"
+    set "library_installed_now=1"
 )
 
 :AXIOM_LIBRARY_EXISTS
 if "!library_exists!"=="1" (
     echo [info] !name! exists in environment: %CONDA_DEFAULT_ENV%
-    endlocal & exit /b 0
+    endlocal & set "library_installed_now=%library_installed_now%" & exit /b 0
 ) else (
     echo [error] Verify failed: !name! is not in current environment.
-    endlocal & exit /b 1
+    endlocal & set "library_installed_now=0" & exit /b 1
 )

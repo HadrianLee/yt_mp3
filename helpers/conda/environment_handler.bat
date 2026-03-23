@@ -8,6 +8,9 @@ set "export_conda_default_env="
 set "export_path="
 set "debug=0"
 set "target_env_exists=0"
+set "env_created_now=0"
+set "state_file=installer_state.properties"
+set "tracked_package_env="
 
 set "conda_root=%~1"
 set "conda_entry=%~2"
@@ -39,6 +42,12 @@ set "target_env_input="
 set /p "target_env_input=Environment name (press Enter for 'yt_mp3'): "
 set "target_env_input=!target_env_input: =!"
 if not "!target_env_input!"=="" set "target_env=!target_env_input!"
+
+if exist "!state_file!" (
+    for /f "usebackq tokens=1,* delims==" %%A in ("!state_file!") do (
+        if /i "%%A"=="package_env_name" set "tracked_package_env=%%B"
+    )
+)
 
 if "!debug!"=="1" if "%conda_exists%"=="1" (
     echo [debug] Simulating activation of Conda environment '!target_env!'.
@@ -75,6 +84,7 @@ if "!target_env_exists!"=="0" (
             pause
             endlocal & exit /b 1
         )
+        set "env_created_now=1"
     )
 )
 
@@ -92,12 +102,26 @@ set "export_conda_default_env=!CONDA_DEFAULT_ENV!"
 if not defined export_conda_default_env set "export_conda_default_env=!target_env!"
 set "export_path=!PATH!"
 
+if not "!debug!"=="1" (
+    call helpers\core\state_writer.bat "!state_file!" managed_by_script true
+    call helpers\core\state_writer.bat "!state_file!" env_name "!target_env!"
+    call helpers\core\state_writer.bat "!state_file!" env_created_by_script false
+    if "!env_created_now!"=="1" (
+        call helpers\core\state_writer.bat "!state_file!" env_created_by_script true
+    )
+    if /i not "!tracked_package_env!"=="!target_env!" (
+        call helpers\core\state_writer.bat "!state_file!" package_env_name "!target_env!"
+        call helpers\core\state_writer.bat "!state_file!" ffmpeg_installed_by_script false
+        call helpers\core\state_writer.bat "!state_file!" ytdlp_installed_by_script false
+    )
+)
+
 :FINALIZE_ACTIVATE_CONDA
 endlocal & (
     set "target_env=%export_target_env%"
     set "CONDA_PREFIX=%export_conda_prefix%"
     set "CONDA_DEFAULT_ENV=%export_conda_default_env%"
     set "PATH=%export_path%"
-)
+) 
 
 exit /b 0

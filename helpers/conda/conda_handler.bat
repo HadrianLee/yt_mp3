@@ -6,6 +6,8 @@ set "force_conda_missing=0"
 set "conda_detected=0"
 set "resolved_conda_root="
 set "resolved_conda_entry="
+set "conda_installed_now=0"
+set "state_file=installer_state.properties"
 
 call helpers\core\handler_flag_parser.bat %*
 if errorlevel 1 endlocal & exit /b 1
@@ -26,6 +28,11 @@ if "!force_conda_missing!"=="1" (
 
 if "!conda_detected!"=="1" (
     echo [info] Conda already exists at "!resolved_conda_root!".
+    if not "!debug!"=="1" (
+        call helpers\core\state_writer.bat "!state_file!" managed_by_script true
+        call helpers\core\state_writer.bat "!state_file!" conda_root "!resolved_conda_root!"
+        call helpers\core\state_writer.bat "!state_file!" conda_entry "!resolved_conda_entry!"
+    )
     endlocal & (
         set "conda_exists=1"
         set "conda_root=%resolved_conda_root%"
@@ -80,6 +87,7 @@ del MiniforgeInstaller.exe
 if exist "%USERPROFILE%\miniforge3\condabin\conda.bat" (
     set "resolved_conda_root=%USERPROFILE%\miniforge3"
     set "resolved_conda_entry=!resolved_conda_root!\condabin\conda.bat"
+    set "conda_installed_now=1"
     set "PATH=%USERPROFILE%\miniforge3\condabin;%USERPROFILE%\miniforge3\Scripts;!PATH!"
     echo [info] Installation detected and added to current session.
     goto EXIT_SUCCESS
@@ -91,6 +99,14 @@ pause
 endlocal & exit /b 1
 
 :EXIT_SUCCESS
+if not "!debug!"=="1" (
+    call helpers\core\state_writer.bat "!state_file!" managed_by_script true
+    call helpers\core\state_writer.bat "!state_file!" conda_root "!resolved_conda_root!"
+    call helpers\core\state_writer.bat "!state_file!" conda_entry "!resolved_conda_entry!"
+    if "!conda_installed_now!"=="1" (
+        call helpers\core\state_writer.bat "!state_file!" conda_installed_by_script true
+    )
+)
 endlocal & (
     set "conda_exists=1"
     set "conda_root=%resolved_conda_root%"
