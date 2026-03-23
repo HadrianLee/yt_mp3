@@ -3,5 +3,7 @@
 !.gitignore
 !src/
 !src/**
+!helpers
+!helpers/**
 !main.bat
 !README.md
