@@ -1,9 +1,18 @@
-#yt_mp3/.gitignore
+# yt_mp3/.gitignore
+# Ignore everything by default
 *
 !.gitignore
-!src/
-!src/**
-!helpers
-!helpers/**
-!main.bat
 !README.md
+!main.bat
+
+# Allow directories
+!src/
+!helpers/
+
+# Allow all files inside those directories
+!src/**
+!helpers/**
+
+# Explicitly ignore bytecode (must come AFTER the allow rules)
+**/__pycache__/
+*.py[cod]
